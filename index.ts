@@ -21,16 +21,24 @@ const folderPath = `${homedir()}/${process.env.FOLDER_PATH}`;
 
 if (garminConnect) {
     chokidar
-        .watch(folderPath)
+        .watch(folderPath, {ignoreInitial: true})
         .on('add', (filePath) => {
             console.log(`new file detected ${filePath}`);
-            if (filePath && filePath.endsWith('.fit')) {
-                uploadToGarmin(filePath);
-            }
+            handleFileChange(filePath);
+        })
+        .on('change', (filePath) => {
+            console.log(`file change detected ${filePath}`);
+            handleFileChange(filePath);
         });
 
     console.log("🚴‍⬆️️⌚️ WhooshConnect is running...");
     console.log(`watching folder ${folderPath}`);
+}
+
+function handleFileChange(filePath: string) {
+    if (filePath && filePath.endsWith('.fit')) {
+        uploadToGarmin(filePath);
+    }
 }
 
 function uploadToGarmin(filename: string) {

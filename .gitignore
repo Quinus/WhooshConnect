@@ -13,4 +13,4 @@ yarn-error.log*
 .vscode/*
 
 .env
-.DS_STORE
+.DS_Store
