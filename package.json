@@ -1,0 +1,15 @@
+{
+  "name": "whooshconnect",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.1",
+    "garmin-connect": "^1.6.2"
+  }
+}
