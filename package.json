@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "chokidar": "^4.0.1",
-    "garmin-connect": "^1.6.2"
+    "dotenv": "^16.4.5",
+    "garmin-connect": "^1.6.2",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }
