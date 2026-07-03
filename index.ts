@@ -1,54 +1,45 @@
-import {GarminConnect} from "garmin-connect";
-import {UploadFileType} from "garmin-connect/dist/garmin/types";
-import {homedir} from 'os';
+import { GarminUploader } from "./lib/GarminUploader.ts";
+import { FileWatcher } from "./lib/FileWatcher.ts";
+import { homedir } from "os";
+import { logger } from "./lib/Logger.ts";
 
-import chokidar from 'chokidar';
+async function main() {
+  const requiredEnvVars = ["GARMIN_USER_NAME", "GARMIN_PASSWORD", "FOLDER_PATH"];
+  const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
-let garminConnect: GarminConnect | undefined = undefined;
-try {
-    garminConnect = new GarminConnect({
-        username: process.env.GARMIN_USER_NAME ?? "",
-        password: process.env.GARMIN_PASSWORD ?? "",
-    });
-    await garminConnect.login()
-    const profile = await garminConnect.getUserProfile()
-    console.log(`logged in as ${profile.userName}`)
-} catch (e) {
-    console.error("error creating garmin connect client", e);
+  if (missingVars.length > 0) {
+    logger.error(`Missing required environment variables: ${missingVars.join(", ")}`);
+    process.exit(1);
+  }
+
+  try {
+    const uploader = new GarminUploader(
+      process.env.GARMIN_USER_NAME!,
+      process.env.GARMIN_PASSWORD!,
+    );
+    await uploader.initialize();
+
+    new FileWatcher(`${homedir()}/${process.env.FOLDER_PATH!}`)
+      .start()
+      .on("fitFileDetected", async (filePath) => {
+        try {
+          await uploader.uploadFile(filePath);
+        } catch (error) {
+          logger.error({ err: error }, "Upload failed");
+        }
+      })
+      .on("error", (error) => {
+        logger.error({ err: error }, "Watcher encountered an error");
+      });
+
+    logger.info("🚴‍⬆️️⌚️ WhooshConnect is running...");
+  } catch (error) {
+    logger.error({ err: error }, "Error in initialization");
+    process.exit(1);
+  }
 }
 
-const folderPath = `${homedir()}/${process.env.FOLDER_PATH}`;
-
-if (garminConnect) {
-    chokidar
-        .watch(folderPath, {ignoreInitial: true})
-        .on('add', (filePath) => {
-            console.log(`new file detected ${filePath}`);
-            handleFileChange(filePath);
-        })
-        .on('change', (filePath) => {
-            console.log(`file change detected ${filePath}`);
-            handleFileChange(filePath);
-        });
-
-    console.log("🚴‍⬆️️⌚️ WhooshConnect is running...");
-    console.log(`watching folder ${folderPath}`);
-}
-
-function handleFileChange(filePath: string) {
-    if (filePath && filePath.endsWith('.fit')) {
-        uploadToGarmin(filePath);
-    }
-}
-
-function uploadToGarmin(filename: string) {
-    console.log(`Uploading ${filename} to Garmin Connect`);
-    garminConnect?.uploadActivity(
-        filename,
-        UploadFileType.fit
-    ).then(() => {
-        console.log(`Successfully uploaded ${filename}`);
-    }).catch((e) => {
-        console.error(`Error uploading ${filename} to Garmin Connect`, e);
-    });
-}
+main().catch((error) => {
+  logger.error({ err: error }, "Unhandled error in main application");
+  process.exit(1);
+});

@@ -1,20 +1,21 @@
 # WhooshConnect
 
-Simple Bun app that detects new .fit files in the 
+Simple Bun app that detects new .fit files in the
 MyWhoosh app folder and automatically uploads them to garmin connect.
 
-Only tested on Mac OS. 
+Only tested on Mac OS.
 For usage on windows you should check in which folder the MyWhoosh app puts it's .fit files and change this in `FOLDER_PATH` in the .env file.
 
 ## Configuration
 
-create a .env file with your Garmin Connect username and password.
-> see .env.example for file structure</br>
-> FOLDER_PATH should also be in your .env file.
+Create a `.env` file with your Garmin Connect username and password.
+
+> See `.env.example` for file structure.</br>
+> `FOLDER_PATH` should also be in your `.env` file.
 
 ## Running
 
-This project was created using Bun, but should also work with Node.js if preferred.
+This project was created using Bun.
 
 To install dependencies:
 
@@ -25,7 +26,13 @@ bun install
 To run:
 
 ```bash
-bun run index.ts
+bun run start
+```
+
+## Validation
+
+```bash
+vp check
 ```
 
 ## Attribution
