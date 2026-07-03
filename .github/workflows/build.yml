@@ -1,4 +1,4 @@
-name: Build
+name: Build and Publish
 
 on:
   push:
@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
-    name: Build app
+    name: Build and publish app
     runs-on: ubuntu-latest
 
     steps:
@@ -32,9 +32,25 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Package dist
+        run: |
+          cd dist
+          zip -r ../whooshconnect-dist.zip .
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: whooshconnect-dist
-          path: dist/
+          path: whooshconnect-dist.zip
           if-no-files-found: error
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: build-${{ github.run_number }}
+        run: |
+          gh release create "$TAG_NAME" \
+            whooshconnect-dist.zip \
+            --title "WhooshConnect $TAG_NAME" \
+            --notes "Built from ${{ github.sha }} on main." \
+            --target "${{ github.sha }}"
